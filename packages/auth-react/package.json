@@ -1,6 +1,6 @@
 {
   "name": "@trionesdev/auth-react",
-  "version": "0.0.1-beta.15",
+  "version": "0.0.1-beta.16",
   "description": "triones auth react",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
