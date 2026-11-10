@@ -27,6 +27,9 @@ export const routes: RouteObject[] = [
     }
 ]
 
+// 在组件外创建一次，避免每次渲染都重新创建 router
+const router = createHashRouter(routes);
+
 export const AppRouter = () => {
-    return <RouterProvider router={createHashRouter(routes)} />;
+    return <RouterProvider router={router}/>;
 };

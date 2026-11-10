@@ -61,7 +61,8 @@ pnpm --filter react-demo dev
 | `permission` | 访问路由所需的权限，自动包裹 `<Authorization>` |
 | `unauthorized` | 无权限时渲染的内容 |
 | `onUnauthorized` | 无权限时的回调 |
-| `path` | 函数形式，返回路径字符串 |
+| `path` | 字符串，或返回路径字符串的函数 |
+| `permissionMode` | 多个权限时的鉴权模式，`and`（默认）或 `or` |
 | `label` | 路由名称 |
 
 ### 组件级鉴权
@@ -89,6 +90,7 @@ pnpm --filter react-demo test:watch  # 监听模式
 | --- | --- |
 | [authentication.test.tsx](src/test/authentication.test.tsx) | 请求成功 / 返回 null / 失败；加载中状态；`onUnAuthenticated` 去重；`signOut`；`setActor` 竞态；StrictMode；内联请求不重复调用 |
 | [authorization.test.tsx](src/test/authorization.test.tsx) | `and` / `or` / `master`；对象权限；`permissionTransform`；`customAuthenticate`；未授权内容与回调；切换用户与退出；`useAuthorization` |
+| [router.test.tsx](src/test/router.test.tsx) | `convertRoutes` 不修改原配置；`anonymous` / `permission` / `permissionMode`；`Component` 转换；子路由守卫 |
 | [App.test.tsx](src/test/App.test.tsx) | demo 端到端流程：跳转登录、登录、路由鉴权、组件鉴权、退出 |
 
 测试相关的辅助文件：

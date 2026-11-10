@@ -17,7 +17,7 @@ React 认证、鉴权与路由权限公共库。
 ## 快速开始
 
 ```bash
-pnpm add @trionesdev/auth-react @trionesdev/react-router-auth
+pnpm add @trionesdev/auth-react @trionesdev/react-router-auth react-router
 ```
 
 ```tsx

@@ -2,7 +2,7 @@ import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {beforeEach, describe, expect, it, vi} from 'vitest'
 
-/** routesConvert 会修改模块级的 routes，每个用例重新加载模块以保证隔离。 */
+/** router 在模块级创建并持有导航状态，每个用例重新加载模块以保证隔离。 */
 const renderApp = async (hash = '#/') => {
   window.location.hash = hash
   vi.resetModules()

@@ -8,10 +8,10 @@
 ## 安装
 
 ```bash
-pnpm add @trionesdev/react-router-auth react-router
+pnpm add @trionesdev/react-router-auth @trionesdev/auth-react react-router
 ```
 
-本包依赖 `react-router@^8.1.0` 和 `@trionesdev/auth-react`，要求 `react` / `react-dom` >= 19.2。项目中直接使用的 `react-router` 版本需与之一致，避免出现两份 Router 上下文。
+`react-router@^8.1.0`、`@trionesdev/auth-react`、`react` / `react-dom` >= 19.2 均为 peerDependencies，由项目自行安装，保证与项目使用同一份 Router 和认证上下文。
 
 ## 快速开始
 
@@ -50,24 +50,37 @@ export const App = () => (
 
 ## API
 
-### createBrowserRouter / createHashRouter
+### createBrowserRouter / createHashRouter / createMemoryRouter
 
 ```ts
-createBrowserRouter(routes: RouteObject[]): DataRouter
-createHashRouter(routes: RouteObject[]): DataRouter
+createBrowserRouter(routes: RouteObject[], opts?): Router
+createHashRouter(routes: RouteObject[], opts?): Router
+createMemoryRouter(routes: RouteObject[], opts?): Router  // 适用于测试、SSR 等场景
 ```
 
-与 React Router 同名函数相同，区别是接收扩展后的 `RouteObject`，并按如下规则转换每个路由（包括 `children`）：
+与 React Router 同名函数相同（`opts` 如 `basename`、`initialEntries` 原样透传），区别是接收扩展后的 `RouteObject`，先经过 `convertRoutes` 转换。
+
+建议在组件外创建 router，避免每次渲染都重新创建。
+
+### convertRoutes
+
+```ts
+convertRoutes(routes: RouteObject[]): ReactRouter.RouteObject[]
+```
+
+将扩展的路由配置转换为 React Router 的路由配置，可配合 `useRoutes` 或自定义的 `create*Router` 使用。转换**不会修改**传入的 `routes`，可以对同一份配置重复调用。按如下规则转换每个路由（包括 `children`）：
 
 | 配置 | 转换结果 |
 | --- | --- |
-| 默认 | `element` / `Component` 包裹 `<Authentication>`，需要登录才能访问 |
+| 默认 | 页面包裹 `<Authentication>`，需要登录才能访问 |
 | `anonymous: true` | 不包裹 `<Authentication>`，允许匿名访问 |
-| `permission` | 再包裹 `<Authorization value={permission}>`，需要对应权限 |
+| `permission` | 再包裹 `<Authorization>`，需要对应权限 |
 
-同时配置登录和权限时，结构为 `<Authentication><Authorization>页面</Authorization></Authentication>`：先校验登录，再校验权限。
-
-> 转换会直接修改传入的 `routes` 对象，请只对同一份 `routes` 调用一次，并在组件外创建 router，不要在组件渲染时创建。
+- 同时配置登录和权限时，结构为 `<Authentication><Authorization>页面</Authorization></Authentication>`：先校验登录，再校验权限。
+- `Component` 会被转换为包裹后的 `element`。
+- 没有 `element` / `Component` 的路由（如只有 `children` 的分组路由）不会被包裹，其子路由各自按配置守卫。
+- 通过 `lazy` 加载的页面不会被包裹，需要守卫时请使用 `element` / `Component`。
+- 其它 React Router 字段（`loader`、`handle`、`errorElement` 等）原样保留。
 
 ### RouteObject
 
@@ -75,15 +88,16 @@ createHashRouter(routes: RouteObject[]): DataRouter
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `path` | `(...params: any[]) => string` | 路由路径，以函数形式声明，创建 router 时调用并替换为字符串 |
+| `path` | `string \| ((...params: any[]) => string)` | 路由路径；为函数时在转换时以无参方式调用，原配置中的函数保留，可继续用于生成链接 |
 | `anonymous` | `boolean` | 是否允许匿名访问，默认 `false` |
-| `permission` | `string \| string[]` | 所需权限，多个权限时需全部拥有（`and` 模式） |
+| `permission` | `string \| string[]` | 所需权限 |
+| `permissionMode` | `'and' \| 'or'` | 多个权限时的鉴权模式：`and`（默认）需全部拥有，`or` 拥有其一即可 |
 | `unauthorized` | `ReactNode` | 无权限时渲染的内容，未配置时使用 `AuthorizationProvider` 的 `unauthorized` |
 | `onUnauthorized` | `() => void` | 无权限时的回调，未配置时使用 `AuthorizationProvider` 的 `onUnauthorized` |
 | `label` | `string` | 路由名称，可用于菜单、面包屑等 |
 | `children` | `RouteObject[]` | 子路由，同样会被转换 |
 
-`RouteType` 为上述扩展字段的类型，可用于自定义路由结构。
+`RouteType` 为上述扩展字段的类型，`AuthorizationMode` 为 `permissionMode` 的类型，可用于自定义路由结构。
 
 未登录、未授权时的跳转与回调规则见 [@trionesdev/auth-react](../auth-react/README.md)。
 
